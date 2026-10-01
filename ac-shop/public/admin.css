@@ -1,0 +1,27 @@
+.admin { background: var(--bg-alt); min-height: 100vh; }
+.admin-main { padding: 32px 0 60px; }
+.sm-text { padding: 9px 16px; font-size: 14px; }
+.login { max-width: 380px; margin: 60px auto; grid-template-columns: 1fr; }
+.login h2 { margin: 0; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 24px; }
+.stat { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; }
+.stat b { display: block; font-size: 1.6rem; color: var(--ink); }
+.stat span { font-size: 13px; color: var(--muted); }
+.admin-bar { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.admin-bar select { width: auto; font-size: 14px; padding: 9px 12px; }
+.table-wrap { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); overflow-x: auto; }
+.admin-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.admin-table th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); padding: 12px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.admin-table td { padding: 12px 14px; border-bottom: 1px solid var(--line); vertical-align: top; color: var(--ink); }
+.admin-table tr.main { cursor: pointer; }
+.admin-table tr.main:hover td { background: #f8fbff; }
+.admin-table tr.detail td { background: #fbfcfe; color: var(--text); }
+.admin-table small { display: block; color: var(--muted); }
+.admin-table select { width: auto; padding: 6px 8px; font-size: 13px; }
+.pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--ice); color: var(--blue); white-space: nowrap; }
+.detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
+.detail-grid h4 { font-size: 13px; margin: 0 0 6px; }
+.detail-grid p, .detail-grid ul { margin: 0; font-size: 14px; }
+.detail-grid ul { padding-left: 18px; }
+.empty-row { text-align: center; color: var(--muted); padding: 40px !important; }
+.admin .header-actions { margin-left: auto; }

@@ -5,9 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Bokitos Air – Air conditioners &amp; heat pumps for Europe</title>
   <meta name="description" content="Energy-efficient air conditioners and air-to-air heat pumps, delivered across the EU with F-gas certified installation.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230a6cff'/%3E%3Cpath d='M16 6v20M7.3 11l17.4 10M7.3 21l17.4-10' stroke='white' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E">
 </head>
@@ -128,8 +125,10 @@
             <button class="chip" data-type="multi" data-i18n="f.multi">Multi-split</button>
             <button class="chip" data-type="portable" data-i18n="f.portable">Portable</button>
             <button class="chip" data-type="floor" data-i18n="f.floor">Floor console</button>
+            <button class="chip" data-type="accessory" data-i18n="f.acc">Accessories</button>
           </div>
           <div class="filter-selects">
+            <input type="search" id="searchInput" class="search" data-i18n-ph="search.ph" placeholder="Search products…" aria-label="Search">
             <select id="capFilter" aria-label="Capacity">
               <option value="all" data-i18n="f.capAll">Any capacity</option>
               <option value="0-3" data-i18n="f.cap1">Up to 3 kW (≤ 30 m²)</option>
@@ -217,18 +216,19 @@
         <a href="#shop" data-i18n="f.wall">Wall split</a>
         <a href="#shop" data-i18n="f.multi">Multi-split</a>
         <a href="#shop" data-i18n="f.portable">Portable</a>
+        <a href="#shop" data-i18n="f.acc">Accessories</a>
       </div>
       <div>
         <h4 data-i18n="footer.service">Service</h4>
         <a href="#installation" data-i18n="nav.install">Installation</a>
-        <a href="#faq" data-i18n="footer.warranty">Warranty &amp; returns</a>
+        <a href="returns.html" data-i18n="footer.returns">Returns &amp; withdrawal</a>
         <a href="#contact" data-i18n="nav.contact">Contact</a>
       </div>
       <div>
         <h4 data-i18n="footer.legal">Legal</h4>
-        <a href="#" data-i18n="footer.imprint">Imprint</a>
-        <a href="#" data-i18n="footer.privacy">Privacy policy</a>
-        <a href="#" data-i18n="footer.terms">Terms &amp; conditions</a>
+        <a href="imprint.html" data-i18n="footer.imprint">Imprint</a>
+        <a href="privacy.html" data-i18n="footer.privacy">Privacy policy</a>
+        <a href="terms.html" data-i18n="footer.terms">Terms &amp; conditions</a>
       </div>
     </div>
     <div class="container footer-bottom">
@@ -250,6 +250,7 @@
       <div class="line"><span data-i18n="cart.install">Installation</span><span id="cartInstall"></span></div>
       <div class="line"><span data-i18n="cart.shipping">Shipping</span><span id="cartShipping"></span></div>
       <div class="line total"><span data-i18n="cart.total">Total (incl. VAT)</span><span id="cartTotal"></span></div>
+      <p class="cart-note" data-i18n="cart.vatHint">VAT is calculated for your country at checkout.</p>
       <button class="btn btn-primary block" id="checkoutBtn" data-i18n="cart.checkout">Checkout</button>
     </div>
   </aside>
@@ -271,9 +272,23 @@
             <label><span data-i18n="co.city">City</span><input name="city" required autocomplete="address-level2"></label>
             <label><span data-i18n="form.country">Country</span><select name="country" id="coCountry" required></select></label>
           </div>
-          <label><span data-i18n="co.phone">Phone (for the installer)</span><input name="phone" type="tel" autocomplete="tel"></label>
+          <div class="row">
+            <label><span data-i18n="co.phone">Phone (for the installer)</span><input name="phone" type="tel" autocomplete="tel" required></label>
+            <label><span data-i18n="co.week">Preferred installation date</span><input name="preferredDate" type="date" id="coDate"></label>
+          </div>
+          <label><span data-i18n="co.notes">Notes for delivery or the installer</span><textarea name="notes" rows="2"></textarea></label>
+          <fieldset class="pay">
+            <legend data-i18n="co.payment">Payment method</legend>
+            <label class="pay-opt" id="payCardOpt"><input type="radio" name="payment" value="card"> <span data-i18n="co.card">Pay online</span></label>
+            <label class="pay-opt"><input type="radio" name="payment" value="bank"> <span data-i18n="co.bank">Bank transfer (prepayment)</span></label>
+            <label class="pay-opt"><input type="radio" name="payment" value="invoice"> <span data-i18n="co.invoice">Pay after installation (invoice)</span></label>
+          </fieldset>
+          <div class="co-summary">
+            <h4 data-i18n="co.summary">Order summary</h4>
+            <ul id="coItems"></ul>
+          </div>
           <label class="check"><input type="checkbox" name="terms" required> <span data-i18n="co.terms">I accept the terms and the 14-day right of withdrawal.</span></label>
-          <div class="co-total"><span data-i18n="cart.total">Total (incl. VAT)</span><strong id="coTotal"></strong></div>
+          <div class="co-total"><div><span data-i18n="cart.total">Total (incl. VAT)</span><small id="coVat"></small></div><strong id="coTotal"></strong></div>
           <button class="btn btn-primary block" type="submit" data-i18n="co.place">Place order</button>
           <p class="form-status" id="coStatus" aria-live="polite"></p>
         </form>
@@ -281,14 +296,30 @@
           <div class="tick">✓</div>
           <h3 data-i18n="co.done">Order received!</h3>
           <p id="coDoneText"></p>
+          <p id="coExtra" class="co-extra" hidden></p>
           <button class="btn btn-primary" id="coBack" data-i18n="co.back">Continue shopping</button>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- Product details -->
+  <div class="modal" id="productModal" hidden role="dialog" aria-modal="true" aria-labelledby="pmTitle">
+    <div class="modal-card wide">
+      <button class="icon-btn modal-close" id="productClose" aria-label="Close">✕</button>
+      <div id="productBody"></div>
+    </div>
+  </div>
+
+  <div class="cookie" id="cookie" hidden>
+    <p><span data-i18n="ck.text">We only use essential browser storage to remember your cart and language.</span> <a href="privacy.html" data-i18n="footer.privacy">Privacy policy</a></p>
+    <button class="btn btn-primary" id="cookieOk" data-i18n="ck.ok">OK</button>
+  </div>
+
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+  <script src="catalog.js"></script>
+  <script src="i18n.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

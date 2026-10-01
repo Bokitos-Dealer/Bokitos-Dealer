@@ -1,34 +1,81 @@
 # Bokitos Air: online shop for air conditioners in Europe
 
-A storefront for selling air conditioners and air-to-air heat pumps across the EU. It is plain HTML, CSS and JavaScript. It has no build step and no dependencies.
+A complete web shop for selling air conditioners, heat pumps and accessories across the EU. It has a storefront in 5 languages, online payments, order emails and an admin page for managing orders.
 
-**Open it:** double-click `index.html`, or upload this folder to any static host (GitHub Pages, Netlify, Cloudflare Pages, an ordinary web server).
+It needs nothing but **Node.js 18 or newer**. There are no packages to install and no build step.
 
-## What's in it
+```bash
+cd ac-shop
+cp .env.example .env     # fill in what you want to switch on
+npm start                # http://localhost:3000
+npm test                 # server tests
+```
 
-- **5 languages:** English, German, French, Dutch and Spanish. The site picks one from the browser, and visitors can switch in the header. Prices and numbers use each locale's format (`€1,399` or `1.399 €`), and country names are translated.
-- **Product catalogue:** 10 models covering wall splits, multi-splits, a floor console and portables. Each card shows the cooling and heating capacity, SEER/SCOP, noise level, refrigerant and EU energy-label class. Visitors can filter by type and capacity, and sort by popularity, price or efficiency.
-- **Size calculator:** takes room area, ceiling height, sun exposure and insulation, and returns a recommended kW (and BTU/h). It can then show only the matching units.
-- **Cart:** a slide-out drawer with quantities and an optional installation add-on for split units. Shipping is free from €500, and the cart is remembered in the visitor's browser.
-- **Checkout and quote request forms:** both check their fields before sending, and both have a GDPR consent checkbox.
-- EU details: prices include VAT, a 14-day right of withdrawal, F-gas certified installation, a section on heat pump subsidies, and links to imprint, privacy and terms pages.
+You can also double-click `public/index.html` to preview the shop without the server. In that **demo mode** everything works except that orders and quote requests are not sent anywhere.
+
+## What customers get
+
+- **5 languages:** English, German, French, Dutch and Spanish. Prices use each country's format (`€1,399` or `1.399 €`).
+- **Catalogue:** 10 air conditioners (wall, multi-split, floor console, portable) and 6 accessories. Customers can filter by type and capacity, sort, and search.
+- **Product pages** (`/#product/<id>`) with the full specifications, highlights, the EU energy label scale (cooling and heating), a quantity selector and "often bought together" accessories.
+- **Size calculator:** gives a recommended kW for the room and shows the units that fit.
+- **Cart:** optional installation per unit, free shipping from €500.
+- **Checkout:**
+  - delivery and installation details and a preferred installation date
+  - payment by card and local methods through Stripe, bank transfer, or invoice after installation
+  - a VAT breakdown at the rate of the destination country (EU one-stop-shop rules)
+- **Quote request form** for larger or multi-room jobs.
+- **Legal pages:** imprint, privacy policy, terms, and returns and withdrawal (with the EU model withdrawal form), plus a short privacy notice. There are no tracking cookies and no third-party scripts or fonts.
 - Works on phones and desktops.
+
+## What you get
+
+- **Admin page** at `/admin` (protected by `ADMIN_PASSWORD`):
+  - totals: revenue, orders awaiting payment, new quote requests
+  - order and quote lists with search, status filter and full details
+  - status changes (paid, scheduled, shipped, installed…) with a history
+  - CSV export for your accounting
+- **Email notifications** through [Resend](https://resend.com): a confirmation to the customer and a message to you for each order or quote, and a payment confirmation when Stripe reports a payment.
+- **The server works out all prices and VAT itself** from `public/catalog.js`, so someone editing prices in their browser can't change what they pay.
+- Security basics: rate limiting, a lockout after repeated wrong admin passwords, body size limits, security headers (CSP and others), and signature checks on Stripe webhooks.
+
+Orders and quotes are stored in `data/db.json`. Back that file up.
+
+## Settings (`.env`)
+
+| Variable | Switches on |
+| --- | --- |
+| `ADMIN_PASSWORD` | The admin page at `/admin` |
+| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | Online payments. In the Stripe dashboard, add a webhook to `https://<your-domain>/api/stripe/webhook` for `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed` and `checkout.session.expired`. Enable the payment methods you want (cards, iDEAL, Bancontact, SEPA…) in the dashboard. |
+| `BANK_IBAN`, `BANK_HOLDER` | Shows your bank details to customers who choose bank transfer |
+| `RESEND_API_KEY`, `MAIL_FROM`, `SHOP_EMAIL` | Emails. `SHOP_EMAIL` receives new orders and quotes |
+| `PUBLIC_URL` | Your shop address, used for Stripe return links |
+| `TRUST_PROXY=1` | Set this when running behind a proxy or load balancer, so rate limits see real visitor IPs |
+| `PORT`, `DATA_DIR` | Server port (default 3000) and where data is stored (default `data/`) |
+
+## Hosting
+
+Run `node server.js` on any host that runs Node and keeps files on disk, for example a small VPS, Render, Railway or Fly.io (give it a persistent volume for `data/`). Put HTTPS in front of it; most hosts do this for you.
 
 ## Before going live
 
-1. **Connect the forms.** `formEndpoint` in `app.js` is empty, so the shop runs in *demo mode*: orders and quote requests show a success message but **are not sent anywhere**. Set `CONFIG.formEndpoint` to a URL that accepts JSON POSTs (for example Formspree, Netlify Forms, or your own API) so you receive them.
-2. **Take payments** if you want customers to pay online. Right now an order is a request that you confirm by phone. To charge online, connect a payment provider such as Stripe, Mollie or Adyen.
-3. **Replace the placeholder content:**
-   - Products, prices and specs: the `PRODUCTS` list in `app.js`.
-   - Phone number and email: the contact section in `index.html`.
-   - The Imprint, Privacy policy and Terms pages: the footer links currently point nowhere. Most EU countries legally require these pages.
-   - Installation prices, the shipping fee and the countries you deliver to: `CONFIG` in `app.js`.
-4. Have the warranty, returns and subsidy wording checked for each country you sell in.
+1. **Replace the placeholder content:**
+   - Products, prices, specs, installation prices, shipping fee and VAT rates: `public/catalog.js`.
+   - Phone and email: the contact section in `public/index.html`.
+   - Company details: the highlighted `[placeholders]` in `imprint.html`, `privacy.html`, `terms.html` and `returns.html`.
+2. **Have the legal pages checked by a lawyer** for each country you sell in, then remove the yellow "Template" note at the top of each page. The pages are in English only; some countries expect them in their own language.
+3. **Check the VAT rates** in `catalog.js`. They were correct in 2026, but countries change them.
+4. **Set up your accounts:** Stripe (with the webhook), Resend (verify your sending domain), and a strong `ADMIN_PASSWORD`.
+5. **Test a full order** with Stripe's test keys before switching to live keys.
 
 ## Files
 
-| File | Contents |
+| Path | Contents |
 | --- | --- |
-| `index.html` | Page structure |
-| `styles.css` | All styling |
-| `app.js` | Products, translations, filters, calculator, cart and forms |
+| `server.js` | Web server and API: orders, quotes, Stripe, emails, admin |
+| `public/catalog.js` | Products, prices, VAT rates and the price calculation (shared by the browser and the server) |
+| `public/i18n.js` | All shop text in 5 languages |
+| `public/index.html`, `app.js`, `styles.css` | The shop |
+| `public/admin.html`, `admin.js`, `admin.css` | The admin page |
+| `public/imprint.html` … `returns.html`, `404.html` | Legal and error pages |
+| `test/server.test.js` | Server tests (`npm test`) |
