@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bokitos Air – Air conditioners &amp; heat pumps for Europe</title>
+  <meta name="description" content="Energy-efficient air conditioners and air-to-air heat pumps, delivered across the EU with F-gas certified installation.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230a6cff'/%3E%3Cpath d='M16 6v20M7.3 11l17.4 10M7.3 21l17.4-10' stroke='white' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="#" class="logo" aria-label="Bokitos Air home">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="currentColor"/><path d="M16 6v20M7.3 11l17.4 10M7.3 21l17.4-10" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg>
+        <span>Bokitos<b>Air</b></span>
+      </a>
+      <nav class="main-nav" id="mainNav">
+        <a href="#shop" data-i18n="nav.shop">Shop</a>
+        <a href="#calculator" data-i18n="nav.calc">Size calculator</a>
+        <a href="#installation" data-i18n="nav.install">Installation</a>
+        <a href="#faq" data-i18n="nav.faq">FAQ</a>
+        <a href="#contact" data-i18n="nav.contact">Contact</a>
+      </nav>
+      <div class="header-actions">
+        <select id="langSelect" class="lang-select" aria-label="Language">
+          <option value="en">EN</option>
+          <option value="de">DE</option>
+          <option value="fr">FR</option>
+          <option value="nl">NL</option>
+          <option value="es">ES</option>
+        </select>
+        <button class="cart-btn" id="cartOpen" aria-label="Open cart">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.5L21 8H6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="10" cy="20" r="1.5" fill="currentColor"/><circle cx="17" cy="20" r="1.5" fill="currentColor"/></svg>
+          <span class="cart-count" id="cartCount">0</span>
+        </button>
+        <button class="menu-btn" id="menuBtn" aria-label="Menu"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-inner">
+        <div class="hero-copy">
+          <p class="eyebrow" data-i18n="hero.eyebrow">Delivered to all 27 EU countries</p>
+          <h1 data-i18n="hero.title">Cool summers. Warm winters. Lower energy bills.</h1>
+          <p class="lead" data-i18n="hero.lead">Energy-efficient split air conditioners and air-to-air heat pumps with A+++ ratings, low-GWP refrigerants and professional installation by F-gas certified technicians.</p>
+          <div class="hero-cta">
+            <a href="#shop" class="btn btn-primary" data-i18n="hero.cta1">Shop air conditioners</a>
+            <a href="#calculator" class="btn btn-ghost" data-i18n="hero.cta2">Find the right size</a>
+          </div>
+          <ul class="hero-points">
+            <li data-i18n="hero.p1">5-year warranty</li>
+            <li data-i18n="hero.p2">14-day returns</li>
+            <li data-i18n="hero.p3">Prices incl. VAT</li>
+          </ul>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <div class="hero-unit">
+            <div class="unit-body"><span class="unit-led"></span><span class="unit-temp">21°</span></div>
+            <div class="unit-vent"></div>
+            <div class="airflow"><i></i><i></i><i></i><i></i></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="trust">
+      <div class="container trust-grid">
+        <div><strong>A+++</strong><span data-i18n="trust.1">Top EU energy class</span></div>
+        <div><strong>R32 / R290</strong><span data-i18n="trust.2">Low-GWP refrigerants</span></div>
+        <div><strong>-25 °C</strong><span data-i18n="trust.3">Heating down to</span></div>
+        <div><strong>19 dB</strong><span data-i18n="trust.4">Whisper-quiet indoor units</span></div>
+      </div>
+    </section>
+
+    <section id="calculator" class="section calc-section">
+      <div class="container calc-grid">
+        <div>
+          <h2 data-i18n="calc.title">What size do I need?</h2>
+          <p class="muted" data-i18n="calc.lead">Enter your room details and we'll recommend a cooling capacity. This is a quick estimate; our installers confirm it on site.</p>
+        </div>
+        <form class="calc-card" id="calcForm">
+          <label>
+            <span data-i18n="calc.area">Room area (m²)</span>
+            <input type="number" id="calcArea" min="5" max="200" value="25" required>
+          </label>
+          <label>
+            <span data-i18n="calc.height">Ceiling height (m)</span>
+            <input type="number" id="calcHeight" min="2" max="5" step="0.1" value="2.6" required>
+          </label>
+          <label>
+            <span data-i18n="calc.sun">Sun exposure</span>
+            <select id="calcSun">
+              <option value="0.9" data-i18n="calc.sun1">Shaded / north-facing</option>
+              <option value="1" selected data-i18n="calc.sun2">Normal</option>
+              <option value="1.15" data-i18n="calc.sun3">Very sunny / south-facing</option>
+            </select>
+          </label>
+          <label>
+            <span data-i18n="calc.insul">Insulation</span>
+            <select id="calcInsul">
+              <option value="0.85" data-i18n="calc.insul1">Good (new build)</option>
+              <option value="1" selected data-i18n="calc.insul2">Average</option>
+              <option value="1.2" data-i18n="calc.insul3">Poor (old building, attic)</option>
+            </select>
+          </label>
+          <div class="calc-result" id="calcResult" aria-live="polite"></div>
+          <button type="button" class="btn btn-primary" id="calcShow" data-i18n="calc.show">Show matching units</button>
+        </form>
+      </div>
+    </section>
+
+    <section id="shop" class="section">
+      <div class="container">
+        <div class="section-head">
+          <h2 data-i18n="shop.title">Air conditioners &amp; heat pumps</h2>
+          <p class="muted" data-i18n="shop.lead">All units heat and cool. Prices include VAT; installation can be added in the cart.</p>
+        </div>
+        <div class="filters" id="filters">
+          <div class="chips" role="group" aria-label="Type">
+            <button class="chip active" data-type="all" data-i18n="f.all">All</button>
+            <button class="chip" data-type="wall" data-i18n="f.wall">Wall split</button>
+            <button class="chip" data-type="multi" data-i18n="f.multi">Multi-split</button>
+            <button class="chip" data-type="portable" data-i18n="f.portable">Portable</button>
+            <button class="chip" data-type="floor" data-i18n="f.floor">Floor console</button>
+          </div>
+          <div class="filter-selects">
+            <select id="capFilter" aria-label="Capacity">
+              <option value="all" data-i18n="f.capAll">Any capacity</option>
+              <option value="0-3" data-i18n="f.cap1">Up to 3 kW (≤ 30 m²)</option>
+              <option value="3-5.5" data-i18n="f.cap2">3–5.5 kW (30–55 m²)</option>
+              <option value="5.5-99" data-i18n="f.cap3">Over 5.5 kW (55 m²+)</option>
+            </select>
+            <select id="sortSelect" aria-label="Sort">
+              <option value="pop" data-i18n="f.sortPop">Most popular</option>
+              <option value="priceAsc" data-i18n="f.sortLow">Price: low to high</option>
+              <option value="priceDesc" data-i18n="f.sortHigh">Price: high to low</option>
+              <option value="seer" data-i18n="f.sortEff">Most efficient</option>
+            </select>
+          </div>
+        </div>
+        <p class="result-note" id="resultNote" hidden></p>
+        <div class="product-grid" id="productGrid"></div>
+      </div>
+    </section>
+
+    <section id="installation" class="section alt">
+      <div class="container">
+        <div class="section-head">
+          <h2 data-i18n="inst.title">From order to cool air in 3 steps</h2>
+          <p class="muted" data-i18n="inst.lead">Split systems must be installed by an F-gas certified technician under EU Regulation 2024/573. We handle it for you.</p>
+        </div>
+        <div class="steps">
+          <div class="step"><span>1</span><h3 data-i18n="inst.s1t">Order online</h3><p data-i18n="inst.s1">Choose your unit and add installation. We call you within one working day to plan the visit.</p></div>
+          <div class="step"><span>2</span><h3 data-i18n="inst.s2t">Delivery</h3><p data-i18n="inst.s2">Free delivery on orders over €500, usually within 3–7 working days across the EU.</p></div>
+          <div class="step"><span>3</span><h3 data-i18n="inst.s3t">Professional installation</h3><p data-i18n="inst.s3">A certified installer mounts, vacuums and commissions the system, typically in half a day.</p></div>
+        </div>
+        <div class="subsidy">
+          <div>
+            <h3 data-i18n="sub.title">Save with heat pump subsidies</h3>
+            <p data-i18n="sub.text">Many EU countries offer grants or reduced VAT for air-to-air heat pumps. We supply the invoices and technical datasheets you need for your application.</p>
+          </div>
+          <a href="#contact" class="btn btn-light" data-i18n="sub.cta">Ask about subsidies</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="faq" class="section">
+      <div class="container narrow">
+        <h2 data-i18n="faq.title">Frequently asked questions</h2>
+        <div class="faq" id="faqList"></div>
+      </div>
+    </section>
+
+    <section id="contact" class="section alt">
+      <div class="container contact-grid">
+        <div>
+          <h2 data-i18n="contact.title">Get a free quote</h2>
+          <p class="muted" data-i18n="contact.lead">Need several rooms cooled, or not sure which unit fits? Tell us about your home and we'll send a tailored quote within 24 hours.</p>
+          <ul class="contact-list">
+            <li><b data-i18n="contact.phone">Phone</b> +31 20 000 0000</li>
+            <li><b data-i18n="contact.email">Email</b> sales@bokitos-air.eu</li>
+            <li><b data-i18n="contact.hours">Hours</b> <span data-i18n="contact.hoursVal">Mon–Fri 8:00–18:00 CET</span></li>
+          </ul>
+        </div>
+        <form class="contact-form" id="contactForm" novalidate>
+          <div class="row">
+            <label><span data-i18n="form.name">Name</span><input name="name" required autocomplete="name"></label>
+            <label><span data-i18n="form.email">Email</span><input name="email" type="email" required autocomplete="email"></label>
+          </div>
+          <div class="row">
+            <label><span data-i18n="form.country">Country</span><select name="country" id="countrySelect" required></select></label>
+            <label><span data-i18n="form.rooms">Number of rooms</span><input name="rooms" type="number" min="1" max="20" value="1"></label>
+          </div>
+          <label><span data-i18n="form.msg">Message</span><textarea name="message" rows="4"></textarea></label>
+          <label class="check"><input type="checkbox" name="consent" required> <span data-i18n="form.consent">I agree that my details are used to answer my request (GDPR).</span></label>
+          <button class="btn btn-primary" type="submit" data-i18n="form.send">Request quote</button>
+          <p class="form-status" id="contactStatus" aria-live="polite"></p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div>
+        <a href="#" class="logo light"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="currentColor"/><path d="M16 6v20M7.3 11l17.4 10M7.3 21l17.4-10" stroke="#0b1b33" stroke-width="2.5" stroke-linecap="round"/></svg><span>Bokitos<b>Air</b></span></a>
+        <p data-i18n="footer.about">Air conditioning and heat pumps for homes and offices across Europe.</p>
+      </div>
+      <div>
+        <h4 data-i18n="footer.shop">Shop</h4>
+        <a href="#shop" data-i18n="f.wall">Wall split</a>
+        <a href="#shop" data-i18n="f.multi">Multi-split</a>
+        <a href="#shop" data-i18n="f.portable">Portable</a>
+      </div>
+      <div>
+        <h4 data-i18n="footer.service">Service</h4>
+        <a href="#installation" data-i18n="nav.install">Installation</a>
+        <a href="#faq" data-i18n="footer.warranty">Warranty &amp; returns</a>
+        <a href="#contact" data-i18n="nav.contact">Contact</a>
+      </div>
+      <div>
+        <h4 data-i18n="footer.legal">Legal</h4>
+        <a href="#" data-i18n="footer.imprint">Imprint</a>
+        <a href="#" data-i18n="footer.privacy">Privacy policy</a>
+        <a href="#" data-i18n="footer.terms">Terms &amp; conditions</a>
+      </div>
+    </div>
+    <div class="container footer-bottom">
+      <span>© <span id="year"></span> Bokitos Air</span>
+      <span data-i18n="footer.vat">All prices in EUR incl. VAT. Energy labels per EU Regulation 2017/1369.</span>
+    </div>
+  </footer>
+
+  <!-- Cart drawer -->
+  <div class="overlay" id="overlay" hidden></div>
+  <aside class="cart" id="cart" aria-hidden="true" aria-label="Cart">
+    <div class="cart-head">
+      <h3 data-i18n="cart.title">Your cart</h3>
+      <button class="icon-btn" id="cartClose" aria-label="Close">✕</button>
+    </div>
+    <div class="cart-items" id="cartItems"></div>
+    <div class="cart-foot" id="cartFoot">
+      <div class="line"><span data-i18n="cart.subtotal">Subtotal</span><span id="cartSubtotal"></span></div>
+      <div class="line"><span data-i18n="cart.install">Installation</span><span id="cartInstall"></span></div>
+      <div class="line"><span data-i18n="cart.shipping">Shipping</span><span id="cartShipping"></span></div>
+      <div class="line total"><span data-i18n="cart.total">Total (incl. VAT)</span><span id="cartTotal"></span></div>
+      <button class="btn btn-primary block" id="checkoutBtn" data-i18n="cart.checkout">Checkout</button>
+    </div>
+  </aside>
+
+  <!-- Checkout modal -->
+  <div class="modal" id="checkout" hidden role="dialog" aria-modal="true" aria-labelledby="checkoutTitle">
+    <div class="modal-card">
+      <button class="icon-btn modal-close" id="checkoutClose" aria-label="Close">✕</button>
+      <div id="checkoutBody">
+        <h3 id="checkoutTitle" data-i18n="co.title">Checkout</h3>
+        <form id="checkoutForm" novalidate>
+          <div class="row">
+            <label><span data-i18n="form.name">Name</span><input name="name" required autocomplete="name"></label>
+            <label><span data-i18n="form.email">Email</span><input name="email" type="email" required autocomplete="email"></label>
+          </div>
+          <label><span data-i18n="co.address">Street and number</span><input name="address" required autocomplete="street-address"></label>
+          <div class="row three">
+            <label><span data-i18n="co.zip">Postcode</span><input name="zip" required autocomplete="postal-code"></label>
+            <label><span data-i18n="co.city">City</span><input name="city" required autocomplete="address-level2"></label>
+            <label><span data-i18n="form.country">Country</span><select name="country" id="coCountry" required></select></label>
+          </div>
+          <label><span data-i18n="co.phone">Phone (for the installer)</span><input name="phone" type="tel" autocomplete="tel"></label>
+          <label class="check"><input type="checkbox" name="terms" required> <span data-i18n="co.terms">I accept the terms and the 14-day right of withdrawal.</span></label>
+          <div class="co-total"><span data-i18n="cart.total">Total (incl. VAT)</span><strong id="coTotal"></strong></div>
+          <button class="btn btn-primary block" type="submit" data-i18n="co.place">Place order</button>
+          <p class="form-status" id="coStatus" aria-live="polite"></p>
+        </form>
+        <div class="success" id="checkoutDone" hidden>
+          <div class="tick">✓</div>
+          <h3 data-i18n="co.done">Order received!</h3>
+          <p id="coDoneText"></p>
+          <button class="btn btn-primary" id="coBack" data-i18n="co.back">Continue shopping</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
