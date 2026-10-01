@@ -4,6 +4,8 @@ A first-person cycling simulator set in Amsterdam's canal ring. You ride a heavy
 
 **Play:** open `dist/index.html` in a browser. It is one self-contained file, so you can double-click it, host it anywhere (for example GitHub Pages) or embed it.
 
+> **Roblox version:** [`roblox/`](roblox/README.md) holds **Bike the World**, a kid-friendly Roblox game built from this project. You ride through Amsterdam, Paris and New York, earn coins, and can buy bikes and extras with coins or Robux. Open `roblox/BikeTheWorld.rbxlx` in Roblox Studio. The roblox README explains how to publish the game and set up Robux items.
+
 ## What makes it feel real
 
 **The bike**

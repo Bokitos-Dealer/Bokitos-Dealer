@@ -40,7 +40,9 @@ end
 
 -- Riders don't bump into the world or each other: the client steers the bike
 -- around walls itself, which feels much smoother than physics collisions.
-PhysicsService:RegisterCollisionGroup("Riders")
+pcall(function()
+	PhysicsService:RegisterCollisionGroup("Riders")
+end)
 PhysicsService:CollisionGroupSetCollidable("Riders", "Default", false)
 PhysicsService:CollisionGroupSetCollidable("Riders", "Riders", false)
 
@@ -202,6 +204,7 @@ task.spawn(function()
 			print(string.format("[Bike the World] %s ready in %.1fs", c.name, os.clock() - t0))
 			for _, player in Players:GetPlayers() do
 				toast(player, c.name .. " is ready! Ride through its portal.", "info")
+				DataService.touch(player) -- sends the new landmark list
 			end
 		else
 			warn("[Bike the World] could not build " .. c.name .. ": " .. tostring(err))
@@ -255,8 +258,12 @@ local function snapshot(player: Player): { [string]: any }?
 		found += 1
 	end
 	local total = 0
+	local list = {}
 	for _, w in Worlds.list do
 		total += #w.landmarks
+		for _, l in w.landmarks do
+			table.insert(list, { id = l.id, name = l.name, city = w.id })
+		end
 	end
 	return {
 		coins = profile.coins,
@@ -269,6 +276,7 @@ local function snapshot(player: Player): { [string]: any }?
 		landmarks = profile.landmarks,
 		found = found,
 		totalLandmarks = total,
+		landmarkList = list,
 		deliveries = profile.deliveries,
 		metres = profile.metres,
 		passes = passes,

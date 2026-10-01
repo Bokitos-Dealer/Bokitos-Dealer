@@ -57,12 +57,19 @@ function BikeService.ownsBike(player: Player, def: Config.BikeDef): boolean
 	return profile ~= nil and profile.bikes[def.id] == true
 end
 
-function BikeService.lookFor(player: Player): BikeModel.Look
+--- The bike the player has equipped (or the free one if they lost it).
+function BikeService.chosenDef(player: Player): Config.BikeDef
 	local profile = DataService.get(player)
 	local def = BikeService.bikeDef(if profile then profile.bike else "city")
 	if not BikeService.ownsBike(player, def) then
 		def = Config.Bikes[1]
 	end
+	return def
+end
+
+function BikeService.lookFor(player: Player): BikeModel.Look
+	local profile = DataService.get(player)
+	local def = BikeService.chosenDef(player)
 	local cosmetics: { [string]: boolean } = {}
 	if profile then
 		for id, on in profile.worn do
@@ -139,6 +146,9 @@ function BikeService.spawnBike(player: Player, at: CFrame?)
 	local model = BikeModel.build(BikeService.lookFor(player), origin, nil)
 	model.Name = player.Name .. "_Bike"
 	model:SetAttribute("Owner", player.UserId)
+	model:SetAttribute("BikeId", BikeService.chosenDef(player).id)
+	-- always streamed to its rider, streamed as one piece to everyone else
+	model.ModelStreamingMode = Enum.ModelStreamingMode.PersistentPerPlayer
 	local root = model.PrimaryPart :: BasePart
 	-- the client drives the bike by moving these rigid targets
 	local att = Instance.new("Attachment")
@@ -161,6 +171,9 @@ function BikeService.spawnBike(player: Player, at: CFrame?)
 	setGroup(model, "Riders")
 	model.Parent = bikesFolder
 	pcall(function()
+		model:AddPersistentPlayer(player)
+	end)
+	pcall(function()
 		root:SetNetworkOwner(player)
 	end)
 	-- sit down
@@ -168,6 +181,15 @@ function BikeService.spawnBike(player: Player, at: CFrame?)
 	local seat = model:FindFirstChild("Saddle") :: Seat
 	seat:Sit(hum)
 	setGroup(char, "Riders")
+	-- accessories that load later must not bump into the city either
+	local added = char.DescendantAdded:Connect(function(d)
+		if d:IsA("BasePart") and BikeService.bikes[player] == model then
+			d.CollisionGroup = "Riders"
+		end
+	end)
+	model.Destroying:Connect(function()
+		added:Disconnect()
+	end)
 	-- helmet
 	local profile = DataService.get(player)
 	local head = char:FindFirstChild("Head") :: BasePart?
