@@ -48,9 +48,11 @@ end
 -- minimal Roblox stand-ins used by shared modules
 Color3 = { fromRGB = function(r, g, b) return { R = r / 255, G = g / 255, B = b / 255 } end }
 Vector3 = { new = function(x, y, z) return { X = x, Y = y, Z = z } end }
+bit32 = bit32
 `;
 for (const file of modules) {
-  const rel = relative(src, file).replace(/\.luau$/, '').replace(/\\/g, '/');
+  // a folder's init.luau is the folder itself (like Rojo)
+  const rel = relative(src, file).replace(/\.luau$/, '').replace(/\\/g, '/').replace(/\/init$/, '');
   const code = readFileSync(file, 'utf8').replace(/^--!strict\s*$/m, '');
   out += `\n__defs[${JSON.stringify(rel)}] = function(script, require)\n${code}\nend\n`;
 }

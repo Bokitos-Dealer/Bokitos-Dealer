@@ -45,12 +45,28 @@ for _, name in Cities do
 		check(p.x == p.x and p.y == p.y and p.z == p.z and p.yaw == p.yaw and p.pitch == p.pitch, name .. ": NaN in prim")
 	end
 	local laneKinds = {}
-	for _, l in b.lanes do
-		laneKinds[l.kind] = (laneKinds[l.kind] or 0) + 1
-		for _, pt in l.pts do
-			check(pt[1] == pt[1] and pt[2] == pt[2] and pt[3] == pt[3], name .. ": NaN in lane")
+	if mod.lanes then
+		for _, l in mod.lanes() do
+			laneKinds[l.kind] = (laneKinds[l.kind] or 0) + 1
+			for i = 1, #l.xs do
+				check(l.xs[i] == l.xs[i] and l.zs[i] == l.zs[i], name .. ": NaN in lane")
+			end
+		end
+	else
+		for _, l in b.lanes do
+			laneKinds[l.kind] = (laneKinds[l.kind] or 0) + 1
+			for _, pt in l.pts do
+				check(pt[1] == pt[1] and pt[2] == pt[2] and pt[3] == pt[3], name .. ": NaN in lane")
+			end
 		end
 	end
+	local groups = {}
+	for _, p in b.prims do
+		if p.group then
+			groups[p.group] = (groups[p.group] or 0) + 1
+		end
+	end
+	local terrain = (b :: any).terrain
 	local function fmt(t)
 		local parts = {}
 		for k, v in t do
@@ -64,6 +80,16 @@ for _, name in Cities do
 	print("           kinds: " .. fmt(kinds))
 	print("           tags:  " .. fmt(tagged))
 	print("           lanes: " .. fmt(laneKinds))
+	print("           landmark models: " .. fmt(groups))
+	if terrain then
+		local kinds2 = {}
+		for _, poly in terrain.polys do
+			kinds2[poly.kind] = (kinds2[poly.kind] or 0) + 1
+		end
+		print("           terrain: " .. fmt(kinds2))
+		check(terrain.bounds[3] > terrain.bounds[1] and terrain.bounds[4] > terrain.bounds[2], name .. ": bad terrain bounds")
+	end
+	check(#b.prims < 190000, name .. ": too many parts for the server")
 	check(#b.landmarks >= 3 or name == "Hub", name .. ": too few landmarks")
 	check(b.spawn ~= nil, name .. ": no spawn")
 	if name ~= "Hub" then

@@ -4,15 +4,25 @@ A kid-friendly Roblox game where you ride bikes through famous cities. You start
 
 ## What's in the game
 
-**Cities** (each one is built by code when the server starts):
-- **Hub island:** a practice loop with coins, a big globe, the Bike Shop kiosk and one portal per city.
-- **Amsterdam:** the canal ring (Singel, Herengracht, Keizersgracht, Prinsengracht) with hump bridges, canal houses with gables, the Dam, the Royal Palace, the National Monument, Centraal Station, Westerkerk, Munttoren, the Flower Market and a windmill.
-- **Paris:** the Seine with its quays and bridges, Haussmann buildings, the Champs-Élysées, the Eiffel Tower (it sparkles at night), the Arc de Triomphe, the Louvre pyramid, Notre-Dame, Place de la Concorde, the Tuileries and a carousel.
-- **New York:** a Manhattan grid with Broadway, Central Park, Times Square with neon signs, the Empire State and Flatiron buildings, the Brooklyn Bridge and the Statue of Liberty.
+**Cities, built from the real map.** Amsterdam, Paris and New York come from real **OpenStreetMap** data:
+- every street, bike path, canal, river, bridge, park and building is in its real place, with its real shape and, where the map knows it, its real height
+- 13,000 buildings in Amsterdam, 6,500 in Paris and 10,000 building parts in New York
+- real trees, street lamps, benches, bike racks, traffic lights and crosswalks
+- the server builds each city when it starts
+
+| City | Area | What you'll see |
+|---|---|---|
+| **Amsterdam** | 2 × 2.5 km canal ring, from Centraal Station to the Rijksmuseum | Narrow canal houses with step, neck, bell and spout gables, hoist beams and white window frames. Brick klinker streets, red bike paths and tram tracks. Houseboats, real canal walls and low bridges. The Dam with the Royal Palace and National Monument, Westertoren with its blue crown, Munttoren, the Flower Market and the Skinny Bridge. |
+| **Paris** | 3 × 2.7 km, from the Eiffel Tower to Place de la Concorde | Cream limestone Haussmann blocks with iron balconies and zinc mansard roofs with dormers. The Seine 5 m below its stone quays. The Eiffel Tower (330 m tall, it sparkles at night), the Arc de Triomphe, Trocadéro, the Champs-Élysées, the Luxor Obelisk and its fountains, the Grand Palais, Pont Alexandre III with its golden statues, and the golden dome of Les Invalides. |
+| **New York** | Midtown Manhattan, from the Flatiron Building to Central Park | Real skyscraper shapes from the map's 3D building data, including the Empire State Building, the Chrysler crown and Grand Central. Brick buildings with fire escapes and water towers, Times Square with neon billboards and the ball, the library lions, Prometheus at Rockefeller Center, yellow cabs and crosswalks. |
+
+The **hub island** has a practice loop with coins, a big globe, the Bike Shop kiosk and one portal per city.
+
+**Lots of detail without lag.** Each player's device adds windows, doors, gables, balconies, shop awnings, fire escapes and road markings only for the streets around them (about 250 m across), and removes them again as they ride on. Faraway buildings stay visible as simple shapes, and big landmarks such as the Eiffel Tower can be seen from anywhere in their city.
 
 **Riding:** the physics model includes pedal power, air drag, rolling resistance that depends on the surface (cobblestones are slower than asphalt), hills on bridges, brakes, steering and lean. Shift gives a boost that uses stamina. If you ride into a canal you get a splash and land back on the street, so you never die. Each player also has a bell.
 
-**City life:** cyclists, people walking, cars, taxis and tour boats. They wait for you if you are in the way, so nobody crashes. There is a day/night cycle with street lights and glowing windows, and rain in some cities.
+**City life:** cyclists on the real bike paths, people on the real footpaths, cars and yellow cabs that turn at real junctions, Amsterdam trams, canal boats and Seine boats. They wait for you if you're in the way, so nobody crashes. Traffic lights change colour. There is a day/night cycle with street lights and glowing windows, and rain in some cities.
 
 **Ways to earn coins:**
 
@@ -20,7 +30,7 @@ A kid-friendly Roblox game where you ride bikes through famous cities. You start
 |---|---|
 | Riding | 12 per km |
 | A spinning coin | 5 (each one comes back after 40 s) |
-| A new landmark | 50 (plus a fun fact card) |
+| A new landmark (there are 32 in the three cities) | 50 (plus a fun fact card) |
 | A delivery job (ride into a green ring at a café, bakery or pizza place) | 30, plus up to 37 more for being quick |
 | Daily bonus | 75 |
 
@@ -78,6 +88,21 @@ The game uses Roblox's built-in sounds until you add your own. To use the includ
 1. Upload the files in `assets/` (`bell.wav`, `coin.wav`, `landmark.wav`, `purchase.wav`) in Studio with **View > Asset Manager > Import**, or in the Creator Dashboard under **Development Items > Audio**.
 2. Copy each sound ID into `Config.Sounds` as `"rbxassetid://123456"`.
 
+## Map data and credits
+
+The city maps come from [OpenStreetMap](https://www.openstreetmap.org/copyright) and are © OpenStreetMap contributors, available under the Open Database License (ODbL). The game shows this credit on a sign in the hub and in the travel menu; keep it if you change the game.
+
+Google Street View and Google 3D maps are **not** used: their terms don't allow copying them into other games.
+
+To download fresh map data and regenerate the cities (needs Python 3 with `shapely` and `numpy`):
+
+```
+python3 tools/fetch_osm.py /tmp/osm                # downloads small map tiles (about 3 minutes)
+python3 tools/osm_to_luau.py /tmp/osm               # writes src/shared/CityData/*
+```
+
+Each city's area, landmarks, colours and settings live in `tools/cities.py`.
+
 ## For developers
 
 The code is written in Luau and synced with [Rojo](https://rojo.space/):
@@ -89,8 +114,14 @@ roblox/
   src/shared/             used by both server and client (ReplicatedStorage.Shared)
     Config.luau           prices, bikes, Robux IDs, cities, rewards
     Build.luau            the "build list": a city described as plain data
-    Kit.luau Roads.luau Grid.luau   building blocks: houses, bridges, streets...
-    Cities/               Hub, Amsterdam, Paris, NewYork generators
+    Kit.luau Roads.luau   building blocks used by the hub and the city props
+    Cities/               Hub generator, and Amsterdam/Paris/NewYork (real-map cities)
+    CityData/             the converted map data of each city (generated)
+    Real/                 builds real cities: Decode (reads the data), Generate (streets,
+                          water, parks, street furniture), Buildings (building shapes),
+                          Facades (windows and details), Landmarks (hand-made landmark
+                          models), Raster (terrain), Mass (wedge/box geometry), Look (styles)
+    PartFactory.luau      turns build data into parts (server and client)
     BikePhysics.luau      the riding physics (pure Luau)
     BikeModel.luau        builds the bike models
   src/server/             ServerScriptService.Server
@@ -106,9 +137,11 @@ roblox/
     BikeCamera.luau       chase and first-person cameras
     Animator.luau         wheels, pedals and handlebars of every bike
     Hud.luau ShopUI.luau TravelUI.luau Ui.luau   the interface
-    Traffic.luau          cyclists, walkers, cars and boats
+    Traffic.luau          cyclists, walkers, cars, trams and boats on the real lanes
+    Detail.luau           windows, doors, gables and road markings near the player
     Effects.luau          night lights, coins, rain, sparkles
-  tests/                  tests for the city generators and the physics
+  tests/                  tests: city generators, facades, wedge geometry, terrain, physics
+  tools/                  map download and conversion (Python)
   assets/                 sounds to upload
 ```
 
@@ -118,10 +151,18 @@ roblox/
 - Run the tests with `LUAU=/path/to/luau tests/run.sh`. This needs Node.js and the [Luau](https://github.com/luau-lang/luau/releases) command-line tool.
 
 **How it works:**
-- **Cities from code.** Each city generator returns a build list: plain data with boxes, wedges, cylinders, water, landmarks, coins, lanes, shops and doors. The server's Materializer turns that list into parts. The generators use a seeded random number generator, so every server, and every player's computer, builds exactly the same city. The client runs the same generator to get the traffic lanes, without the server having to send them.
+- **Cities from the real map.** `tools/osm_to_luau.py` turns OpenStreetMap data into compact data modules. It handles:
+  - building outlines and heights
+  - which side of each building faces the street
+  - streets with their widths and surfaces
+  - water, parks, bridges, trees and lamps
+  - traffic lanes, landmarks, shops and delivery doors
+- **Building shapes.** Each building is stored as a few boxes. A box lines up with the street front, so facades are exact; irregular buildings use triangles, each made of one or two WedgeParts.
+- **Server and client.** The server turns the data into a build list and creates the parts, terrain water and parks. The client reads the same data to add facade details and traffic lanes near the player.
 - **Bikes.** Each player's bike belongs to their own computer (network ownership). Each frame the client runs `BikePhysics` and moves two rigid align constraints, so riding feels instant even with lag. Rewards are always checked on the server.
 
 **Adding a city:**
-1. Write `src/shared/Cities/<Name>.luau` with a `generate()` function. Copy the structure of an existing city and use `Kit`, `Roads` and `Grid`.
-2. Add an entry to `Config.Cities`, with an origin at least 9,000 studs away from the other cities.
-3. A portal for it appears in the hub automatically.
+1. Add it to `tools/cities.py` and `tools/fetch_osm.py` with its area, colours, landmarks and spawn point.
+2. Run both tools. Copy `src/shared/Cities/Paris.luau` to `src/shared/Cities/<Name>.luau` and change the data it loads.
+3. Add an entry to `Config.Cities`, with an origin at least 9,000 studs away from the other cities.
+4. A portal for it appears in the hub automatically.

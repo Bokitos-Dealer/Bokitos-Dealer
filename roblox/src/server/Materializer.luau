@@ -6,53 +6,13 @@ local Workspace = game:GetService("Workspace")
 
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Build = require(Shared.Build)
+local PartFactory = require(Shared.PartFactory)
+local Raster = require(Shared.Real.Raster)
 
 local Materializer = {}
 
-local MATERIALS: { [string]: Enum.Material } = {
-	SmoothPlastic = Enum.Material.SmoothPlastic,
-	Plastic = Enum.Material.Plastic,
-	Brick = Enum.Material.Brick,
-	Cobblestone = Enum.Material.Cobblestone,
-	Concrete = Enum.Material.Concrete,
-	Asphalt = Enum.Material.Asphalt,
-	Pavement = Enum.Material.Pavement,
-	Granite = Enum.Material.Granite,
-	Limestone = Enum.Material.Limestone,
-	Sandstone = Enum.Material.Sandstone,
-	Marble = Enum.Material.Marble,
-	Slate = Enum.Material.Slate,
-	Wood = Enum.Material.Wood,
-	WoodPlanks = Enum.Material.WoodPlanks,
-	Metal = Enum.Material.Metal,
-	Glass = Enum.Material.Glass,
-	Neon = Enum.Material.Neon,
-	Fabric = Enum.Material.Fabric,
-	Grass = Enum.Material.Grass,
-	LeafyGrass = Enum.Material.LeafyGrass,
-	Ground = Enum.Material.Ground,
-	Sand = Enum.Material.Sand,
-	Mud = Enum.Material.Mud,
-	Rubber = Enum.Material.Rubber,
-	Leather = Enum.Material.Leather,
-	Plaster = Enum.Material.Plaster,
-	ClayRoofTiles = Enum.Material.ClayRoofTiles,
-	RoofShingles = Enum.Material.RoofShingles,
-	ForceField = Enum.Material.ForceField,
-	Foil = Enum.Material.Foil,
-}
-
-local function color(hex: number): Color3
-	return Color3.fromRGB(bit32.extract(hex, 16, 8), bit32.extract(hex, 8, 8), bit32.extract(hex, 0, 8))
-end
+local color = PartFactory.color
 Materializer.color = color
-
-local function cframeOf(origin: Vector3, p: Build.Prim): CFrame
-	return CFrame.new(origin.X + p.x, origin.Y + p.y, origin.Z + p.z)
-		* CFrame.Angles(0, p.yaw, 0)
-		* CFrame.Angles(p.pitch, 0, 0)
-		* CFrame.Angles(0, 0, p.roll)
-end
 
 local function makeSign(origin: Vector3, s: Build.Sign, parent: Instance)
 	local part = Instance.new("Part")
@@ -103,43 +63,31 @@ function Materializer.build(b: Build.BuildList, origin: Vector3, name: string, p
 		end
 		local m = Instance.new("Model")
 		m.Name = "Chunk_" .. key
+		-- far away chunks are drawn as simple shapes, so the skyline stays
+		pcall(function()
+			m.LevelOfDetail = Enum.ModelLevelOfDetail.StreamingMesh
+		end)
 		m.Parent = folder
 		chunks[key] = m
 		return m
 	end
+	-- landmarks get their own model that every player always has loaded
+	local groups: { [string]: Model } = {}
+	local function groupModel(name: string): Model
+		local found = groups[name]
+		if found then
+			return found
+		end
+		local m = Instance.new("Model")
+		m.Name = name
+		m.ModelStreamingMode = Enum.ModelStreamingMode.Persistent
+		m.Parent = folder
+		groups[name] = m
+		return m
+	end
 	local made = 0
 	for _, p in b.prims do
-		local part: BasePart
-		if p.k == "wedge" then
-			part = Instance.new("WedgePart")
-		elseif p.k == "cwedge" then
-			part = Instance.new("CornerWedgePart")
-		else
-			local pp = Instance.new("Part")
-			if p.k == "cyl" then
-				pp.Shape = Enum.PartType.Cylinder
-			elseif p.k == "ball" then
-				pp.Shape = Enum.PartType.Ball
-			end
-			part = pp
-		end
-		part.Anchored = true
-		part.Size = Vector3.new(p.sx, p.sy, p.sz)
-		part.CFrame = cframeOf(origin, p)
-		part.Material = MATERIALS[p.mat] or Enum.Material.SmoothPlastic
-		part.Color = color(p.col)
-		part.CanCollide = p.coll
-		part.CanTouch = false
-		part.CanQuery = p.coll -- the bike's raycasts only need solid things
-		part.CastShadow = p.shadow
-		part.TopSurface = Enum.SurfaceType.Smooth
-		part.BottomSurface = Enum.SurfaceType.Smooth
-		if p.transp > 0 then
-			part.Transparency = p.transp
-		end
-		if p.refl > 0 then
-			part.Reflectance = p.refl
-		end
+		local part = PartFactory.make(p, origin)
 		if p.light then
 			local light = Instance.new("PointLight")
 			light.Range = p.light.range
@@ -163,7 +111,8 @@ function Materializer.build(b: Build.BuildList, origin: Vector3, name: string, p
 				CollectionService:AddTag(part, tag)
 			end
 		end
-		part.Parent = chunkFor(p.x, p.z)
+		local group = p.group
+		part.Parent = if group then groupModel(group) else chunkFor(p.x, p.z)
 		made += 1
 		if made % 1500 == 0 then
 			task.wait()
@@ -183,8 +132,97 @@ function Materializer.build(b: Build.BuildList, origin: Vector3, name: string, p
 			task.wait()
 		end
 	end
+	local spec = (b :: any).terrain
+	if spec then
+		Materializer.terrain(spec, origin)
+	end
 	folder.Parent = parent
 	return result
+end
+
+local TERRAIN: { [number]: Enum.Material } = {
+	[0] = Enum.Material.Pavement,
+	[2] = Enum.Material.Grass,
+	[3] = Enum.Material.LeafyGrass,
+	[4] = Enum.Material.Sand,
+	[5] = Enum.Material.LeafyGrass,
+	[8] = Enum.Material.Cobblestone,
+}
+
+--- Ground, water and parks of a real city, written into Roblox terrain.
+function Materializer.terrain(spec: any, origin: Vector3)
+	local bd = spec.bounds
+	local wl: number = spec.waterLevel
+	local g = Raster.new(bd[1], bd[2], bd[3], bd[4], 4)
+	for _, poly in spec.polys do
+		if poly.kind ~= 1 then
+			Raster.paint(g, poly.rings, poly.kind, 0)
+		end
+	end
+	task.wait()
+	for _, poly in spec.polys do
+		if poly.kind == 1 then
+			-- a little bigger than the real water: the quay walls cover the edge
+			Raster.paint(g, poly.rings, 1, 2.2)
+		end
+	end
+	task.wait()
+	local terrain = Workspace.Terrain
+	local yBottom = math.floor((wl - 16) / 4) * 4
+	local ny = math.floor(-yBottom / 4)
+	local x0w, z0w = origin.X + g.x0, origin.Z + g.z0
+	local W, D = g.nx * 4, g.nz * 4
+	-- plain pavement everywhere first
+	for tx = 0, W - 1, 1024 do
+		for tz = 0, D - 1, 1024 do
+			local sx, sz = math.min(1024, W - tx), math.min(1024, D - tz)
+			terrain:FillBlock(CFrame.new(x0w + tx + sx / 2, origin.Y - 4, z0w + tz + sz / 2), Vector3.new(sx, 8, sz), Enum.Material.Pavement)
+		end
+	end
+	-- then every block that has water, grass or squares in it
+	local B = 32
+	local written = 0
+	for bz = 0, g.nz - 1, B do
+		for bx = 0, g.nx - 1, B do
+			if not Raster.blockUsed(g, bx, bz, B, B) then
+				continue
+			end
+			local sx, sz = math.min(B, g.nx - bx), math.min(B, g.nz - bz)
+			local mats, occ = {}, {}
+			for ix = 1, sx do
+				local mcol, ocol = {}, {}
+				for iy = 1, ny do
+					local mrow, orow = {}, {}
+					local yb = yBottom + (iy - 1) * 4
+					for iz = 1, sz do
+						local code = Raster.get(g, bx + ix - 1, bz + iz - 1)
+						local m, o = Enum.Material.Air, 0
+						if code == 1 then
+							if yb >= wl - 12 and yb + 4 <= wl then
+								m, o = Enum.Material.Water, 1
+							elseif yb >= wl - 16 and yb < wl - 12 then
+								m, o = Enum.Material.Mud, 1
+							end
+						elseif yb >= -8 and yb + 4 <= 0 then
+							m, o = TERRAIN[code] or Enum.Material.Pavement, 1
+						end
+						mrow[iz] = m
+						orow[iz] = o
+					end
+					mcol[iy] = mrow
+					ocol[iy] = orow
+				end
+				mats[ix] = mcol
+				occ[ix] = ocol
+			end
+			local minV = Vector3.new(x0w + bx * 4, origin.Y + yBottom, z0w + bz * 4)
+			terrain:WriteVoxels(Region3.new(minV, minV + Vector3.new(sx * 4, ny * 4, sz * 4)), 4, mats, occ)
+			written += 1
+			if written % 10 == 0 then
+				task.wait()
+			end
+		end
+	end
 end
 
 return Materializer

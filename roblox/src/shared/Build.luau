@@ -21,12 +21,13 @@ export type Prim = {
 	transp: number,
 	refl: number,
 	light: { range: number, brightness: number, col: number }?,
+	group: string?, -- parts with a group go in their own model (landmarks)
 }
 
 export type Opts = {
 	yaw: number?, pitch: number?, roll: number?,
 	mat: string?, col: number?, coll: boolean?, shadow: boolean?,
-	tag: string?, transp: number?, refl: number?,
+	tag: string?, transp: number?, refl: number?, group: string?,
 }
 
 export type Landmark = { id: string, name: string, x: number, y: number, z: number, radius: number, fact: string }
@@ -83,6 +84,7 @@ local function add(self: BuildList, k: string, x: number, y: number, z: number, 
 		tag = op.tag,
 		transp = op.transp or 0,
 		refl = op.refl or 0,
+		group = op.group,
 	}
 	table.insert(self.prims, p)
 	return p

@@ -157,11 +157,21 @@ end
 
 local SHOP_ICONS: { [string]: string } = {
 	["Café"] = "☕",
-	["Flower Market"] = "🌷",
-	["Boulangerie"] = "🥐",
+	["Bakery"] = "🥐",
+	["Ice Cream"] = "🍦",
 	["Pizza Place"] = "🍕",
 	["Bagel Shop"] = "🥯",
-	["Hot Dog Cart"] = "🌭",
+	["Hot Dog Stand"] = "🌭",
+	["Burger Bar"] = "🍔",
+	["Crêperie"] = "🥞",
+	["Pancake House"] = "🥞",
+	["Fries"] = "🍟",
+	["Sandwich Shop"] = "🥪",
+	["Donut Shop"] = "🍩",
+	["Sweet Shop"] = "🍬",
+	["Chocolate Shop"] = "🍫",
+	["Cheese Shop"] = "🧀",
+	["Deli"] = "🥨",
 }
 
 --- Glowing rings where you pick up delivery orders.

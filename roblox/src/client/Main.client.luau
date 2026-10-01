@@ -12,6 +12,7 @@ local BikeCamera = require(Client:WaitForChild("BikeCamera"))
 local Animator = require(Client:WaitForChild("Animator"))
 local Effects = require(Client:WaitForChild("Effects"))
 local Traffic = require(Client:WaitForChild("Traffic"))
+local Detail = require(Client:WaitForChild("Detail"))
 local Sfx = require(Client:WaitForChild("Sfx"))
 
 Hud.init({
@@ -44,6 +45,7 @@ BikeCamera.init()
 Animator.init()
 Effects.init(BikeController.splashed.Event)
 Traffic.init()
+Detail.init()
 
 BikeController.splashed.Event:Connect(function()
 	Hud.splash()

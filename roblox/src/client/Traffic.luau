@@ -27,7 +27,17 @@ groundParams.FilterType = Enum.RaycastFilterType.Include
 groundParams.IgnoreWater = true
 
 -- Lanes --------------------------------------------------------------------------------
-type Lane = { kind: string, pts: { Vector3 }, cum: { number }, len: number, loop: boolean }
+type Lane = {
+	kind: string,
+	pts: { Vector3 },
+	cum: { number },
+	len: number,
+	loop: boolean,
+	width: number,
+	oneway: boolean,
+	j0: number,
+	j1: number,
+}
 
 local laneCache: { [string]: { Lane } } = {}
 
@@ -47,7 +57,39 @@ local function makeLane(kind: string, raw: { { number } }, origin: Vector3, loop
 	if len < 10 then
 		return nil
 	end
-	return { kind = kind, pts = pts, cum = cum, len = len, loop = loop }
+	return { kind = kind, pts = pts, cum = cum, len = len, loop = loop, width = 0, oneway = false, j0 = 0, j1 = 0 }
+end
+
+-- lanes that meet at each junction (per kind), for turning onto the next street
+local junctions: { [string]: { [number]: { Lane } } } = {}
+local byKind: { [string]: { Lane } } = {}
+
+local function index(lanes: { Lane })
+	table.clear(junctions)
+	table.clear(byKind)
+	for _, l in lanes do
+		local kind = byKind[l.kind]
+		if not kind then
+			kind = {}
+			byKind[l.kind] = kind
+		end
+		table.insert(kind, l)
+		local j = junctions[l.kind]
+		if not j then
+			j = {}
+			junctions[l.kind] = j
+		end
+		for _, id in { l.j0, l.j1 } do
+			if id ~= 0 then
+				local list = j[id]
+				if not list then
+					list = {}
+					j[id] = list
+				end
+				table.insert(list, l)
+			end
+		end
+	end
 end
 
 local function lanesFor(city: string): { Lane }
@@ -70,13 +112,32 @@ local function lanesFor(city: string): { Lane }
 			end
 		end
 		if mod then
-			-- the generators are deterministic, so this matches the server's city
 			local gen = (require :: any)(mod)
-			local b = gen.generate()
-			for _, l in b.lanes do
-				local lane = makeLane(l.kind, l.pts, origin, l.loop == true)
-				if lane then
-					table.insert(lanes, lane)
+			if gen.lanes then
+				-- real cities: lanes come straight from the map data
+				local wl = gen.data.meta.waterLevel
+				for _, l in gen.lanes() do
+					local raw = {}
+					for i = 1, #l.xs do
+						table.insert(raw, { l.xs[i], (l.y or (wl + 0.2)) + 0.2, l.zs[i] })
+					end
+					local lane = makeLane(l.kind, raw, origin, false)
+					if lane then
+						lane.width = l.width
+						lane.oneway = l.oneway
+						lane.j0 = l.j0
+						lane.j1 = l.j1
+						table.insert(lanes, lane)
+					end
+				end
+			else
+				-- the hub: its generator is quick and deterministic
+				local b = gen.generate()
+				for _, l in b.lanes do
+					local lane = makeLane(l.kind, l.pts, origin, l.loop == true)
+					if lane then
+						table.insert(lanes, lane)
+					end
 				end
 			end
 		end
@@ -338,14 +399,41 @@ local function makeCar(city: string): Static
 	return makeStatic(list)
 end
 
-local function makeBoat(): Static
+local function makeBoat(city: string): Static
 	local hull = pick({ Color3.fromRGB(30, 40, 60), Color3.fromRGB(120, 30, 30), Color3.fromRGB(230, 230, 230) })
+	if city == "amsterdam" then
+		-- a low open canal boat (it has to fit under the bridges) with people on board
+		local wood = Color3.fromRGB(110, 80, 55)
+		local list: { { any } } = {
+			{ Vector3.new(6.5, 1.4, 20), hull, Enum.Material.SmoothPlastic, CFrame.new(0, 0.2, 0) },
+			{ Vector3.new(5.6, 0.3, 17), wood, Enum.Material.WoodPlanks, CFrame.new(0, 0.95, 0) },
+		}
+		for k = -1, 1 do
+			table.insert(list, { Vector3.new(1.3, 1.3, 0.9), pick(SHIRTS), Enum.Material.SmoothPlastic, CFrame.new(-1.3, 1.7, k * 5) } :: { any })
+			table.insert(list, { Vector3.new(0.9, 0.9, 0.9), pick(SKIN), Enum.Material.SmoothPlastic, CFrame.new(-1.3, 2.7, k * 5), Enum.PartType.Ball } :: { any })
+		end
+		return makeStatic(list)
+	end
 	return makeStatic({
 		{ Vector3.new(8, 2.4, 34), hull, Enum.Material.SmoothPlastic, CFrame.new(0, 0.6, 0) },
 		{ Vector3.new(7, 2.6, 24), Color3.fromRGB(150, 190, 210), Enum.Material.Glass, CFrame.new(0, 3.1, 1) },
 		{ Vector3.new(7.2, 0.3, 24.4), Color3.fromRGB(240, 240, 240), Enum.Material.SmoothPlastic, CFrame.new(0, 4.5, 1) },
 		{ Vector3.new(0.2, 1.6, 2.4), Color3.fromRGB(230, 60, 50), Enum.Material.Fabric, CFrame.new(0, 2.8, 16) },
 	})
+end
+
+local function makeTram(): Static
+	-- an Amsterdam tram: white and blue, two linked cars
+	local white, blue = Color3.fromRGB(236, 236, 232), Color3.fromRGB(30, 70, 150)
+	local list: { { any } } = {}
+	for _, z in { -8.5, 8.5 } do
+		table.insert(list, { Vector3.new(7.2, 8.4, 16.6), white, Enum.Material.SmoothPlastic, CFrame.new(0, 4.9, z) } :: { any })
+		table.insert(list, { Vector3.new(7.3, 2.6, 16.4), Color3.fromRGB(40, 50, 60), Enum.Material.Glass, CFrame.new(0, 6.2, z) } :: { any })
+		table.insert(list, { Vector3.new(7.3, 0.6, 16.4), blue, Enum.Material.SmoothPlastic, CFrame.new(0, 2.4, z) } :: { any })
+		table.insert(list, { Vector3.new(2.4, 1, 5), Color3.fromRGB(60, 60, 60), Enum.Material.Metal, CFrame.new(0, 9.6, z) } :: { any })
+	end
+	table.insert(list, { Vector3.new(6.6, 2.4, 0.4), Color3.fromRGB(255, 220, 120), Enum.Material.Neon, CFrame.new(0, 7.6, -16.9) } :: { any })
+	return makeStatic(list)
 end
 
 local function makeWalker(): Static
@@ -387,11 +475,11 @@ local currentCity = ""
 
 local COUNTS: { [string]: { [string]: number } } = {
 	hub = { bike = 6 },
-	amsterdam = { bike = 22, walk = 14, car = 3, boat = 3 },
-	paris = { bike = 14, walk = 16, car = 12, boat = 2 },
-	newyork = { bike = 12, walk = 18, car = 14, boat = 1 },
+	amsterdam = { bike = 26, walk = 16, car = 4, boat = 4, tram = 5 },
+	paris = { bike = 14, walk = 18, car = 16, boat = 3 },
+	newyork = { bike = 10, walk = 22, car = 18 },
 }
-local SPEEDS: { [string]: { number } } = { bike = { 3.8, 5.5 }, walk = { 1.1, 1.5 }, car = { 7, 9 }, boat = { 2.2, 3 } }
+local SPEEDS: { [string]: { number } } = { bike = { 3.8, 5.5 }, walk = { 1.1, 1.5 }, car = { 7, 9 }, boat = { 2.2, 3 }, tram = { 5.5, 6.5 } }
 
 local function me(): Vector3
 	local ride = State.ride
@@ -405,16 +493,11 @@ end
 
 --- Put an NPC somewhere on a lane of its kind, between minR and maxR from `near`.
 local function place(n: Npc, near: Vector3, minR: number, maxR: number): boolean
-	local candidates = {}
-	for _, l in lanes do
-		if l.kind == n.kind then
-			table.insert(candidates, l)
-		end
-	end
-	if #candidates == 0 then
+	local candidates = byKind[n.kind]
+	if not candidates or #candidates == 0 then
 		return false
 	end
-	for _ = 1, 60 do
+	for _ = 1, 250 do
 		local l = pick(candidates)
 		local i = math.random(1, #l.pts)
 		local d = (l.pts[i] - near)
@@ -422,13 +505,39 @@ local function place(n: Npc, near: Vector3, minR: number, maxR: number): boolean
 		if flat >= minR and flat <= maxR then
 			n.lane = l
 			n.s = l.cum[i]
-			n.dir = if math.random() < 0.5 then 1 else -1
+			n.dir = if l.oneway or math.random() < 0.5 then 1 else -1
 			n.y = l.pts[i].Y
 			n.nextRay = 0
 			return true
 		end
 	end
 	return false
+end
+
+--- At the end of a street: turn onto a street that meets it, or turn round.
+local function nextLane(n: Npc, j: number)
+	local list = (junctions[n.kind] or {})[j]
+	local options = {}
+	if list then
+		for _, l in list do
+			if l ~= n.lane then
+				if l.j0 == j then
+					table.insert(options, { l, 0, 1 })
+				elseif l.j1 == j and not l.oneway then
+					table.insert(options, { l, l.len, -1 })
+				end
+			end
+		end
+	end
+	if #options > 0 then
+		local o = pick(options)
+		n.lane = o[1]
+		n.s = o[2]
+		n.dir = o[3]
+	else
+		n.dir = -n.dir
+		n.s = math.clamp(n.s, 0, n.lane.len)
+	end
 end
 
 local function destroyNpc(n: Npc)
@@ -459,6 +568,7 @@ local function spawnFor(city: string)
 	clear()
 	currentCity = city
 	lanes = lanesFor(city)
+	index(lanes)
 	local counts: { [string]: number } = COUNTS[city] or {}
 	local near = me()
 	for kind, count in counts do
@@ -492,7 +602,9 @@ local function spawnFor(city: string)
 			elseif kind == "car" then
 				n.static = makeCar(city)
 			elseif kind == "boat" then
-				n.static = makeBoat()
+				n.static = makeBoat(city)
+			elseif kind == "tram" then
+				n.static = makeTram()
 			else
 				n.static = makeWalker()
 			end
@@ -519,7 +631,7 @@ local function update(dt: number)
 	local cam = Workspace.CurrentCamera.CFrame.Position
 	local world = Workspace:FindFirstChild("World")
 	if world then
-		groundParams.FilterDescendantsInstances = { world }
+		groundParams.FilterDescendantsInstances = { world, Workspace.Terrain }
 	end
 	local now = os.clock()
 	for _, n in npcs do
@@ -544,7 +656,7 @@ local function update(dt: number)
 		local toMe = Vector3.new(mePos.X - p.X, 0, mePos.Z - p.Z)
 		local ahead = toMe:Dot(dirVec)
 		local side = (toMe - dirVec * ahead).Magnitude
-		local blockAt = if n.kind == "car" then 26 elseif n.kind == "boat" then 40 else 10
+		local blockAt = if n.kind == "car" then 26 elseif n.kind == "boat" or n.kind == "tram" then 45 else 10
 		local target = n.cruise
 		if ahead > 0 and ahead < blockAt and side < (if n.kind == "car" then 7 else 4) then
 			target = 0
@@ -560,11 +672,12 @@ local function update(dt: number)
 			n.s %= lane.len
 		elseif n.s > lane.len then
 			n.s = lane.len
-			n.dir = -1
+			nextLane(n, lane.j1)
 		elseif n.s < 0 then
 			n.s = 0
-			n.dir = 1
+			nextLane(n, lane.j0)
 		end
+		lane = n.lane
 		p, tangent = laneAt(lane, n.s)
 		local heading = tangent * n.dir
 		local targetYaw = math.atan2(-heading.X, -heading.Z)
@@ -572,10 +685,19 @@ local function update(dt: number)
 		n.yaw += dy * math.min(1, ndt * 6)
 		-- keep to the right a little
 		local right = Vector3.new(-heading.Z, 0, heading.X)
-		local offset = if n.kind == "bike" then 1.2 elseif n.kind == "walk" then 1.5 elseif n.kind == "car" then 0 else 3
+		local offset = 0
+		if n.kind == "car" then
+			offset = if lane.oneway then 0 else lane.width / 4
+		elseif n.kind == "bike" then
+			offset = if lane.width > 4 * M then lane.width / 2 - 1.3 * M else 0.5
+		elseif n.kind == "walk" then
+			offset = 0.8
+		elseif n.kind == "boat" then
+			offset = 3
+		end
 		p += right * offset
 		-- find the ground (not for boats)
-		if n.kind ~= "boat" and now > n.nextRay then
+		if n.kind ~= "boat" and n.kind ~= "tram" and now > n.nextRay then
 			n.nextRay = now + (if dist < 260 then 0.12 else 0.5)
 			local hit = Workspace:Raycast(Vector3.new(p.X, n.y + 8, p.Z), Vector3.new(0, -30, 0), groundParams)
 			if hit then
@@ -583,8 +705,8 @@ local function update(dt: number)
 			else
 				n.y = p.Y
 			end
-		elseif n.kind == "boat" then
-			n.y = p.Y
+		elseif n.kind == "boat" or n.kind == "tram" then
+			n.y = p.Y - 0.2
 		end
 		local ground = CFrame.new(p.X, n.y, p.Z) * CFrame.Angles(0, n.yaw, 0)
 		if n.bike then

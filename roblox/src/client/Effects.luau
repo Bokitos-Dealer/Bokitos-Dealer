@@ -77,6 +77,8 @@ local sails: { [BasePart]: Vector3 } = {} -- part -> hub position
 local spinners: { [BasePart]: boolean } = {}
 local sparkles: { [BasePart]: boolean } = {}
 local beacons: { [BasePart]: boolean } = {}
+local lights: { [BasePart]: number } = {} -- traffic light part -> 1 red, 2 amber, 3 green
+local billboards: { [BasePart]: number } = {}
 
 -- Coins -------------------------------------------------------------------------------
 type Coin = { base: Vector3, id: string, phase: number }
@@ -325,6 +327,26 @@ local function onRender(dt: number)
 			beacons[part] = nil
 		end
 	end
+	-- traffic lights: green 12 s, amber 3 s, red 15 s (each crossing a bit different)
+	for part, which in lights do
+		if not part.Parent then
+			lights[part] = nil
+			continue
+		end
+		local phase = (t + (part.Position.X + part.Position.Z) * 0.05) % 30
+		local on = if phase < 12 then 3 elseif phase < 15 then 2 else 1
+		part.Transparency = if on == which then 0 else 0.75
+	end
+	-- neon billboards slowly change colour
+	for part, seed in billboards do
+		if not part.Parent then
+			billboards[part] = nil
+			continue
+		end
+		if math.floor(t * 2 + seed) % 7 == 0 then
+			part.Color = Color3.fromHSV(((t * 0.05) + seed * 0.13) % 1, 0.75, 1)
+		end
+	end
 	for _, ring in CollectionService:GetTagged("ShopMarker") do
 		if ring:IsA("BasePart") then
 			ring.Transparency = 0.45 + math.sin(t * 3) * 0.15
@@ -379,6 +401,24 @@ function Effects.init(onSplash: RBXScriptSignal?)
 	watch("NightBeacon", function(inst)
 		if inst:IsA("BasePart") then
 			beacons[inst] = true
+		end
+	end)
+	watch("Beacon", function(inst)
+		if inst:IsA("BasePart") then
+			beacons[inst] = true
+		end
+	end)
+	for i = 1, 3 do
+		watch("TrafficLight" .. i, function(inst)
+			if inst:IsA("BasePart") then
+				lights[inst] = i
+				inst.Transparency = 0.75
+			end
+		end)
+	end
+	watch("Billboard", function(inst)
+		if inst:IsA("BasePart") then
+			billboards[inst] = math.random() * 10
 		end
 	end)
 	watch("Coin", addCoin)

@@ -99,6 +99,13 @@ do
 	local clouds = ensure("Clouds", terrain) :: Clouds
 	clouds.Cover = 0.55
 	clouds.Density = 0.5
+	-- colours of the real cities' ground: pavements, squares, parks and water beds
+	terrain:SetMaterialColor(Enum.Material.Pavement, Color3.fromRGB(168, 163, 154))
+	terrain:SetMaterialColor(Enum.Material.Cobblestone, Color3.fromRGB(140, 132, 122))
+	terrain:SetMaterialColor(Enum.Material.Grass, Color3.fromRGB(96, 142, 62))
+	terrain:SetMaterialColor(Enum.Material.LeafyGrass, Color3.fromRGB(78, 120, 52))
+	terrain:SetMaterialColor(Enum.Material.Sand, Color3.fromRGB(206, 190, 150))
+	terrain:SetMaterialColor(Enum.Material.Mud, Color3.fromRGB(58, 50, 40))
 end
 
 -- Day and night: one day takes Config.DayLengthMinutes; nights go twice as

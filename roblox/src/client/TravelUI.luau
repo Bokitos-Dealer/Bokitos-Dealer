@@ -99,6 +99,18 @@ function TravelUI.init(onUnstuck: () -> ())
 	unstuck = onUnstuck
 	local gui = Ui.new("ScreenGui", { Name = "Travel", ResetOnSpawn = false, DisplayOrder = 5, Parent = player:WaitForChild("PlayerGui") })
 	win, content = Ui.window(gui, "🌍 Where do you want to ride?", C.blue)
+	Ui.label({
+		AnchorPoint = Vector2.new(1, 1),
+		Position = UDim2.new(1, 0, 1, -4),
+		Size = UDim2.new(0.4, 0, 0, 18),
+		Text = "City maps © OpenStreetMap contributors",
+		TextColor3 = C.grey,
+		TextStrokeTransparency = 1,
+		TextXAlignment = Enum.TextXAlignment.Right,
+		Font = Enum.Font.GothamMedium,
+		MaxTextSize = 13,
+		Parent = content,
+	})
 	local stuck = Ui.button("😵 I'm stuck!", C.orange, { AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, 0), Size = UDim2.fromOffset(200, 42), MaxTextSize = 22, Parent = content })
 	stuck.Activated:Connect(function()
 		win.Visible = false

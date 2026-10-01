@@ -59,6 +59,9 @@ function Hub.generate(cities: { PortalCity }?): BuildList
 	end
 	b:sign(0, 30 * M, 0, 0, 40 * M, 6 * M, "BIKE THE WORLD", 0xffffff, 0x1d3f8f)
 	b:sign(0, 30 * M, 0, math.pi, 40 * M, 6 * M, "BIKE THE WORLD", 0xffffff, 0x1d3f8f)
+	-- the cities are built from real map data, which asks for this credit
+	b:box(0, 1.6 * M, 10 * M, 9 * M, 2.4 * M, 0.4 * M, { mat = "Wood", col = 0x6b4a32 })
+	b:sign(0, 1.6 * M, 10 * M + 0.25 * M, math.pi, 8.6 * M, 2 * M, "Real city maps © OpenStreetMap contributors", 0x222222, 0xf2efe6)
 	-- portals
 	local n = #list
 	for i, c in list do
