@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="description" content="Fietsen in Amsterdam: a first-person cycling simulator through Amsterdam's canal ring.">
+<title>Fietsen in Amsterdam</title>
+<style>/*__CSS__*/</style>
+</head>
+<body>
+<div id="app"></div>
+
+<!-- loading -->
+<div id="loading">
+  <div class="brand"><span class="xxx">✕✕✕</span><h1>Fietsen in Amsterdam</h1></div>
+  <div class="load-bar"><div id="load-fill"></div></div>
+  <div id="load-text">Laying the klinkers…</div>
+</div>
+
+<!-- main menu -->
+<div id="menu" class="hidden">
+  <div class="menu-card">
+    <div class="brand"><span class="xxx">✕✕✕</span><h1>Fietsen in Amsterdam</h1></div>
+    <p class="tag">Ride an omafiets through the canal ring: humped bridges, tram rails, tourists in the bike lane, Dutch weather and all.</p>
+    <div class="opt-group"><div class="opt-label">Mode</div><div class="opts" data-opt="mode">
+      <button data-v="free" class="on">Free ride</button>
+      <button data-v="delivery">Food delivery</button>
+      <button data-v="tour">City tour</button>
+      <button data-v="commute">Morning commute</button>
+    </div></div>
+    <div class="opt-group"><div class="opt-label">Time</div><div class="opts" data-opt="time">
+      <button data-v="live" class="on">Now in Amsterdam</button>
+      <button data-v="8.25">Morning</button>
+      <button data-v="14">Afternoon</button>
+      <button data-v="golden">Golden hour</button>
+      <button data-v="22.5">Night</button>
+    </div></div>
+    <div class="opt-group"><div class="opt-label">Weather</div><div class="opts" data-opt="weather">
+      <button data-v="live" class="on">Live Amsterdam</button>
+      <button data-v="sunny">Sunny</button>
+      <button data-v="cloudy">Cloudy</button>
+      <button data-v="drizzle">Drizzle</button>
+      <button data-v="rain">Rain</button>
+      <button data-v="storm">Storm</button>
+      <button data-v="fog">Mist</button>
+      <button data-v="dutch">Typically Dutch (changes)</button>
+    </div></div>
+    <div class="opt-group"><div class="opt-label">Graphics</div><div class="opts" data-opt="quality">
+      <button data-v="low">Low</button>
+      <button data-v="medium" class="on">Medium</button>
+      <button data-v="high">High</button>
+    </div></div>
+    <button id="start" class="primary">Start riding</button>
+    <details class="controls">
+      <summary>Controls</summary>
+      <div class="keys">
+        <div><kbd>W</kbd>/<kbd>↑</kbd> pedal</div><div><kbd>S</kbd>/<kbd>↓</kbd> brake (hold when stopped: walk back)</div>
+        <div><kbd>A</kbd><kbd>D</kbd>/<kbd>←</kbd><kbd>→</kbd> steer</div><div><kbd>Shift</kbd> stand on the pedals</div>
+        <div><kbd>Q</kbd>/<kbd>E</kbd> gear down / up</div><div><kbd>Space</kbd> ring your bell</div>
+        <div><kbd>Z</kbd>/<kbd>X</kbd> hand signal left / right</div><div><kbd>L</kbd> bike light</div>
+        <div><kbd>C</kbd> camera view</div><div><kbd>M</kbd> city map</div>
+        <div>Mouse: look around (click to capture)</div><div><kbd>Esc</kbd>/<kbd>P</kbd> pause</div>
+      </div>
+    </details>
+  </div>
+</div>
+
+<!-- HUD -->
+<div id="hud" class="hidden">
+  <div class="panel tl">
+    <div class="speed"><span id="h-speed">0</span><small>km/h</small></div>
+    <div class="row"><div class="gear" id="h-gear"></div><div class="light" id="h-light" title="Bike light (L)">💡</div><div id="h-slope" class="slope"></div></div>
+    <div class="cad" id="h-cadence"></div>
+    <div class="bar stamina"><div id="h-stamina-fill"></div></div>
+  </div>
+  <div class="panel tr">
+    <div class="clock" id="h-clock">14:00</div>
+    <div class="weather" id="h-weather"></div>
+    <div class="wind"><span class="arrow" id="h-wind-arrow">↑</span><span id="h-wind-txt"></span></div>
+    <div class="money" id="h-money">€ 0.00</div>
+    <div class="rep"><div class="bar"><div id="h-rep-fill"></div></div><span id="h-rep-txt"></span></div>
+  </div>
+  <div id="h-street" class="street"></div>
+  <div class="panel mission">
+    <div class="m-title" id="h-m-title"></div>
+    <div class="m-text" id="h-m-text"></div>
+    <div class="m-timer" id="h-m-timer"></div>
+    <div class="m-route" id="h-route"></div>
+  </div>
+  <canvas id="minimap" width="220" height="220"></canvas>
+  <div id="h-toasts"></div>
+  <div id="h-discover"></div>
+  <div id="h-hint"></div>
+  <div id="h-speech"></div>
+  <div id="h-overlay"><div id="h-overlay-title"></div><div id="h-overlay-text"></div></div>
+  <div id="vignette"></div>
+</div>
+
+<!-- big map -->
+<div id="bigmap" class="hidden"><canvas id="bigmap-canvas" width="1200" height="1000"></canvas><div class="bm-hint">Press M to close</div></div>
+
+<!-- pause -->
+<div id="pause" class="hidden">
+  <div class="menu-card small">
+    <h2>Pauze</h2>
+    <div class="opt-group"><div class="opt-label">Time speed</div><div class="opts" data-opt="timescale">
+      <button data-v="1" class="on">Real time</button><button data-v="10">10×</button><button data-v="60">60×</button>
+    </div></div>
+    <div class="opt-group"><div class="opt-label">Weather</div><div class="opts" data-opt="weather2">
+      <button data-v="sunny">Sunny</button><button data-v="cloudy">Cloudy</button><button data-v="drizzle">Drizzle</button><button data-v="rain">Rain</button><button data-v="storm">Storm</button><button data-v="fog">Mist</button>
+    </div></div>
+    <div class="opt-group"><div class="opt-label">Traffic</div><div class="opts" data-opt="density">
+      <button data-v="0.5">Quiet</button><button data-v="1" class="on">Normal</button><button data-v="1.6">Rush hour</button>
+    </div></div>
+    <div class="opt-group"><div class="opt-label">Volume</div><input id="volume" type="range" min="0" max="1" step="0.05" value="0.8"></div>
+    <div id="stats" class="stats"></div>
+    <div class="btn-row"><button id="resume" class="primary">Resume</button><button id="to-menu">Main menu</button></div>
+  </div>
+</div>
+
+<!-- touch -->
+<div id="touch" class="hidden">
+  <div id="t-steer"><div id="t-knob"></div><span>steer</span></div>
+  <div class="t-right">
+    <button id="t-bell" class="t-small">🔔</button>
+    <button id="t-light" class="t-small">💡</button>
+    <button id="t-cam" class="t-small">🎥</button>
+    <button id="t-geardown" class="t-small">G−</button>
+    <button id="t-gearup" class="t-small">G+</button>
+    <button id="t-sprint" class="t-small">⚡</button>
+    <button id="t-brake" class="t-big brake">Brake</button>
+    <button id="t-pedal" class="t-big pedal">Pedal</button>
+  </div>
+  <button id="t-pause" class="t-small t-pause">❚❚</button>
+</div>
+
+<script>/*__JS__*/</script>
+</body>
+</html>
